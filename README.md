@@ -3,6 +3,9 @@
 This project is just a bunch of hacks to avoid sysadmins freaking out when something wrong is not right =) 
 It's intended to give some tools for fast debugging into a tsuru platform
 
+## Dependencies
+You will need to install tsuru and tsuru-admin commands, admin permission in tsuru and have your public key in all docker nodes and RPaaS VMs
+
 ## Installing
 
 As easy as any other tsuru plugin
