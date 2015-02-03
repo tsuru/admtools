@@ -1,6 +1,6 @@
 # Admtools plugin for tsuru
 
-This project is just a bunch of hacks to avoid sysadmins freaking out when something wrong is not right =) 
+This project is just a bunch of hacks to avoid sysadmins freaking out when something wrong is not right =). 
 It's intended to give some tools for fast debugging into a tsuru platform
 
 ## Dependencies
@@ -42,6 +42,8 @@ $ #List of containers via redis(hipache)
 $ REDIS_PARAMETERS="-h redis-hipache.yourcompany.com" tsuru admtools -r appname /healthcheck/
 $ #List of containers via tsuru
 $ tsuru admtools -c appname /healthcheck/
+$ #Or without path
+$ tsuru admtools -c appname 
 ```
 
 Group the nginx log of a VM created by RPaaS Service, giving group of status-code per minute 
@@ -75,7 +77,7 @@ $ #All minutes of a specified time
 $ tsuru admtools -m bad-url ip-rpaas 30/Jan/2015:13:4
 ```
 
-## Links
+Links:
 
-http://docs.tsuru.io/en/latest/using/cli/plugins.html
-https://github.com/tsuru/rpaas
+- Full Plugin documentation: http://docs.tsuru.io/en/latest/using/cli/plugins.html
+- RPaaS Service documentation: https://github.com/tsuru/rpaas
