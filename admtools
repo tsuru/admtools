@@ -83,8 +83,25 @@ function node-exec() {
 }
 
 
-function rpaas-status-code-per-minute() {
+
+function rpaas-per-minute() {
 	shift
+	case "$1" in
+	   url)
+	      rpaas-per-minute-url "$@"
+	      ;;
+	   bad-url)
+	      rpaas-per-minute-bad-url "$@"
+	      ;;
+	   *) 
+	      rpaas-per-minute-status-code "$@"
+	      ;;
+	esac
+}
+
+
+function rpaas-per-minute-status-code() {
+	test "$1" = "status-code" && shift 
 	ip_rpaas="$1"
  	test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
  	date_log=$(echo $date_log|sed 's,/,\\/,g')
@@ -94,8 +111,8 @@ function rpaas-status-code-per-minute() {
 \"; for i in \$(awk /\"'$date_log'/{print \\\$2,\\\$6,\\\$13}\" '$nginx_log'|sed \"s/^\(.*:\)[0-9][0-9]\(.*\)$/\1/g\"|uniq -c); do echo \$i;grep \$(echo \$i|awk \"{print \\\$2}\") '$nginx_log'|awk \"{print \\\$11}\"|sort|uniq -c|sort -n;done   "'
 }
 
-function rpaas-url-equal-per-minute() {
-	shift
+function rpaas-per-minute-url() {
+	shift 
 	ip_rpaas="$1"
  	test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
  	date_log=$(echo $date_log|sed 's,/,\\/,g')
@@ -105,11 +122,24 @@ function rpaas-url-equal-per-minute() {
 \"; for i in \$(awk /\"'$date_log'/{print \\\$2,\\\$6,\\\$13}\" '$nginx_log'|sed \"s/^\(.*:\)[0-9][0-9]\(.*\)$/\1/g\"|uniq -c); do echo \$i;grep \$(echo \$i|awk \"{print \\\$2}\") '$nginx_log'|awk \"{print \\\$4,\\\$5,\\\$6,\\\$11}\"|sort|uniq -c|sort -n|tail -n20;done   "'
 }
 
+function rpaas-per-minute-bad-url() {
+	shift 
+	ip_rpaas="$1"
+ 	test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
+ 	date_log=$(echo $date_log|sed 's,/,\\/,g')
+	nginx_log=/var/log/nginx/access.log
+
+	ssh $ip_rpaas 'sudo su -c "IFS=\"
+\"; for i in \$(awk /\"'$date_log'/{print \\\$2,\\\$6,\\\$13}\" '$nginx_log'|sed \"s/^\(.*:\)[0-9][0-9]\(.*\)$/\1/g\"|uniq -c); do echo \$i;grep \$(echo \$i|awk \"{print \\\$2}\") '$nginx_log'|awk \"\\\$11 !~ /^[23]|404/ {print \\\$4,\\\$5,\\\$6,\\\$11}\"|sort|uniq -c|sort -n|tail -n20;done   "'
+}
+
+
+
 RETVAL=0
 
 case "$1" in
    ""|--help|-h) 
-      echo "Usage: tsuru $(basename $0) [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -s|--rpaas-status-code-per-minute ip-rpaas <stringlog> ] | [ -u|--rpaas-url-equal-per-minute ip-rpaas <stringlog> ] | [ --help|-h ]"
+      echo "Usage: tsuru $(basename $0) [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url ip-rpaas <stringlog> ] | [ --help|-h ]"
       RETVAL=1
       ;;
    --node-list|-l)
@@ -124,14 +154,10 @@ case "$1" in
    --node-exec|-x)
       node-exec "$@"
       ;;
-   --rpaas-status-code-per-minute|-s)
-      rpaas-status-code-per-minute "$@"
-      ;;
-   --rpaas-url-equal-per-minute|-u)
-      rpaas-url-equal-per-minute "$@"
+   --rpaas-per-minute|-m)
+      rpaas-per-minute "$@"
       ;;
 esac
 
 exit $RETVAL
-
 

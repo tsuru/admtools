@@ -12,7 +12,7 @@ As easy as any other tsuru plugin
 ```bash
 $ tsuru plugin-install admtools https://raw.githubusercontent.com/tsuru/admtools/master/admtools
 $ tsuru admtools
-Usage: tsuru admtools [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -s|--rpaas-status-code-per-minute ip-rpaas <stringlog> ] | [ -u|--rpaas-url-equal-per-minute ip-rpaas <stringlog> ] | [ --help|-h ]
+Usage: tsuru admtools [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url ip-rpaas <stringlog> ] | [ --help|-h ]
 ```
 ## Just trying out
 
@@ -47,22 +47,35 @@ $ tsuru admtools -c appname /healthcheck/
 Group the nginx log of a VM created by RPaaS Service, giving group of status-code per minute 
 
 ```bash
-$ #All minutes in the current hour
-$ tsuru admtools -s ip-rpaas 
+$ #All minutes in the current hour(status-code is the default)
+$ tsuru admtools -m status-code ip-rpaas 
+$ #Or just
+$ tsuru admtools -m ip-rpaas 
 $ #All minutes of a specified time
-$ tsuru admtools -s ip-rpaas 30/Jan/2015:15:41
+$ tsuru admtools -s ip-rpaas $(date +%d/%b/%Y):13:4
+$ #Or just
+$ tsuru admtools -s ip-rpaas 2015:13:4
 ```
 
 Group the nginx log of a VM created by RPaaS Service, giving group of urls per minute(limited by 20) 
 
 ```bash
 $ #All minutes in the current hour
-$ tsuru admtools -u ip-rpaas 
+$ tsuru admtools -m url ip-rpaas 
 $ #All minutes of a specified time
-$ tsuru admtools -u ip-rpaas 30/Jan/2015:15:41
+$ tsuru admtools -m url ip-rpaas 30/Jan/2015:13:4
 ```
 
+Group the nginx log of a VM created by RPaaS Service, giving group of "BAD" urls per minute(limited by 20) discarding 20x, 30x and 404 status-code
+
+```bash
+$ #All minutes in the current hour
+$ tsuru admtools -m bad-url ip-rpaas 
+$ #All minutes of a specified time
+$ tsuru admtools -m bad-url ip-rpaas 30/Jan/2015:13:4
+```
 
 ## Links
 
 http://docs.tsuru.io/en/latest/using/cli/plugins.html
+https://github.com/tsuru/rpaas
