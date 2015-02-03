@@ -52,9 +52,9 @@ $ tsuru admtools -m status-code ip-rpaas
 $ #Or just
 $ tsuru admtools -m ip-rpaas 
 $ #All minutes of a specified time
-$ tsuru admtools -s ip-rpaas $(date +%d/%b/%Y):13:4
+$ tsuru admtools -m ip-rpaas $(date +%d/%b/%Y):13:4
 $ #Or just
-$ tsuru admtools -s ip-rpaas 2015:13:4
+$ tsuru admtools -m ip-rpaas 2015:13:4
 ```
 
 Group the nginx log of a VM created by RPaaS Service, giving group of urls per minute(limited by 20) 
