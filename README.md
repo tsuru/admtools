@@ -203,7 +203,7 @@ Links:
 
 FAQ:
 
-1 - Log Format: This plugin only support the log format bellow:
+1 - Log Format: This plugin only supports the log format bellow:
 
 ```bash
     log_format main
