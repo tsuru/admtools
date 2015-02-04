@@ -8,7 +8,7 @@ You will need to install tsuru and tsuru-admin commands, admin permission in tsu
 
 ## Installing
 
-As easy as any other tsuru plugin
+As easy as any other tsuru plugin (use the same command to upgrade)
 ```bash
 $ tsuru plugin-install admtools https://raw.githubusercontent.com/tsuru/admtools/master/admtools
 $ tsuru admtools

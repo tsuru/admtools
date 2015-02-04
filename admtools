@@ -93,6 +93,9 @@ function rpaas-per-minute() {
 	   bad-url)
 	      rpaas-per-minute-bad-url "$@"
 	      ;;
+	   slow-url)
+	      rpaas-per-minute-slow-url "$@"
+	      ;;
 	   *) 
 	      rpaas-per-minute-status-code "$@"
 	      ;;
@@ -134,11 +137,22 @@ function rpaas-per-minute-bad-url() {
 \"; for i in \$(awk /\"'$date_log'/{print \\\$2}\" '$nginx_log'|sed \"s/^\(.*:\)[0-9][0-9]\(.*\)$/\1/g\"|uniq -c); do echo \$i;grep \$(echo \$i|awk \"{print \\\$2}\") '$nginx_log'|awk -F \"\\\t\"  \"\\\$8 !~ /^[23]|404/ {print \\\$2,\\\$3,\\\$4,\\\$8}\"|sort|uniq -c|sort -n|tail -n20;done   "'
 }
 
+function rpaas-per-minute-slow-url() {
+	shift 
+	ip_rpaas="$1"
+ 	test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
+ 	date_log=$(echo $date_log|sed 's,/,\\/,g')
+	nginx_log=/var/log/nginx/access.log
+
+	ssh $ip_rpaas 'sudo su -c "IFS=\"
+\"; for i in \$(awk /\"'$date_log'/{print \\\$2}\" '$nginx_log'|sed \"s/^\(.*:\)[0-9][0-9]\(.*\)$/\1/g\"|uniq -c); do echo \$i;grep \$(echo \$i|awk \"{print \\\$2}\") '$nginx_log'|awk -F \"\\\t\" \"{print \\\$2,\\\$3,\\\$4,\\\$8,\\\$10}\"|sort -nk8|tail -n20;done   "'
+}
+
 RETVAL=0
 
 case "$1" in
    ""|--help|-h) 
-      echo "Usage: tsuru $(basename $0) [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url ip-rpaas <stringlog> ] | [ --help|-h ]"
+      echo "Usage: tsuru $(basename $0) [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url|slow-url ip-rpaas <stringlog> ] | [ --help|-h ]"
       RETVAL=1
       ;;
    --node-list|-l)
