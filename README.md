@@ -12,7 +12,7 @@ As easy as any other tsuru plugin (use the same command to upgrade)
 ```bash
 $ tsuru plugin-install admtools https://raw.githubusercontent.com/tsuru/admtools/master/admtools
 $ tsuru admtools
-Usage: tsuru admtools [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url ip-rpaas <stringlog> ] | [ --help|-h ]
+Usage: tsuru admtools [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url|slow-url ip-rpaas <stringlog> ] | [ --help|-h ]
 ```
 ## Just trying out
 
@@ -178,7 +178,35 @@ $ tsuru admtools -m bad-url ip-rpaas 04/Feb/2015:07:4[2-7]
     289 04/Feb/2015:07:47:
 ```
 
+Group the nginx log of a VM created by RPaaS Service, giving the last 20 slowest urls
+
+```bash
+$ #All minutes in the current hour
+$ tsuru admtools -m slow-url ip-rpaas 
+    585 04/Feb/2015:18:00:
+04/Feb/2015:18:00:42 -0200 app.company.com GET /tags/easports/ HTTP/1.1 200 0.595
+04/Feb/2015:18:00:33 -0200 app.company.com GET /tags/erro/ HTTP/1.1 200 0.885
+04/Feb/2015:18:00:16 -0200 app.company.com GET /tags/jogos/ HTTP/1.1 200 1.013
+04/Feb/2015:18:00:14 -0200 app.company.com GET /cstyle.css HTTP/1.1 200 2.448
+    520 04/Feb/2015:18:01:
+04/Feb/2015:18:01:20 -0200 app.company.com GET /perguntas/8022 HTTP/1.1 200 0.607
+04/Feb/2015:18:01:19 -0200 app.company.com GET /perguntas/23067 HTTP/1.1 200 0.740
+04/Feb/2015:18:01:36 -0200 app.company.com GET /tags/linux/ HTTP/1.1 200 0.770
+04/Feb/2015:18:01:00 -0200 app.company.com GET /perguntas/ HTTP/1.1 200 3.024
+04/Feb/2015:18:01:34 -0200 app.company.com GET /usuarios/8212/ HTTP/1.0 200 3.351
+```
+
 Links:
 
 - Full Plugin documentation: http://docs.tsuru.io/en/latest/using/cli/plugins.html
 - RPaaS Service documentation: https://github.com/tsuru/rpaas
+
+FAQ:
+
+1 - Log Format: This plugin only support the log format bellow:
+    log_format main
+      '$remote_addr\t$time_local\t$host\t$request\t$http_referer\t$http_x_mobile_group\t'
+      'Local:\t$status\t$body_bytes_sent\t$request_time\t'
+      'Proxy:\t$upstream_cache_status\t$upstream_status\t$upstream_response_length\t$upstream_response_time\t'
+      'Agent:\t$http_user_agent\t'
+      'Fwd:\t$http_x_forwarded_for';
