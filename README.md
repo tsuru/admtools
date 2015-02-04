@@ -43,15 +43,15 @@ Warning: Permanently added '10.10.10.10' (RSA) to the list of known hosts.
 OK
 ```
 
-Check all unit containers of a specific application
+Check all unit containers of a specific application with -c or -r
 
 ```bash
-$ #List of containers via redis(of router hipache)
-$ REDIS_PARAMETERS="-h redis-hipache.yourcompany.com" tsuru admtools -r appname /healthcheck/
+$ #List of containers via redis(of router hipache - you must use the entire application domain)
+$ REDIS_PARAMETERS="-h redis-hipache.yourcompany.com" tsuru admtools.yourcompany.com -r appname /healthcheck/
 unit: 10.10.10.10:49282/healthcheck/
 real	0m0.094s
 status: OK
-$ #List of containers via tsuru
+$ #List of containers via tsuru - just use the application name here
 $ tsuru admtools -c appname /healthcheck/
 unit: c59bc17454 started 10.10.10.10:49282/healthcheck/
 real	0m0.021s
