@@ -204,9 +204,12 @@ Links:
 FAQ:
 
 1 - Log Format: This plugin only support the log format bellow:
+
+```bash
     log_format main
       '$remote_addr\t$time_local\t$host\t$request\t$http_referer\t$http_x_mobile_group\t'
       'Local:\t$status\t$body_bytes_sent\t$request_time\t'
       'Proxy:\t$upstream_cache_status\t$upstream_status\t$upstream_response_length\t$upstream_response_time\t'
       'Agent:\t$http_user_agent\t'
       'Fwd:\t$http_x_forwarded_for';
+```
