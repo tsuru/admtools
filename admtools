@@ -26,7 +26,7 @@ function check-app-router() {
 	app=$1
 	path=$2
 
-	for i in $(echo "lrange frontend:$app.cloud.globoi.com 0 -1"|redis-cli $REDIS_PARAMETERS|awk -F/ '/http/{print $3}')
+	for i in $(echo "lrange frontend:$app 0 -1"|redis-cli $REDIS_PARAMETERS|awk -F/ '/http/{print $3}')
 	do 
 		echo unit: ${i}${path}
 		(time curl --connect-timeout 15 ${i}${path} >/dev/null 2>&1\
