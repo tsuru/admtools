@@ -1,42 +1,67 @@
 #!/usr/bin/env bash
 
 test -z "$REDIS_PARAMETERS" && REDIS_PARAMETERS="-h redis-hipache.yourcompany.com"
+test -z "$TIMEOUT_REQUEST" && TIMEOUT_REQUEST=5
 
 function check-app() {
 	shift
 	app=$1
 	path=$2
+	test -z "$path" && path="$(get-healthcheck $app)"
+	test -d "$TMP" && tempfile=$TMP/.tsurupluginadmtools-$RANDOM || tempfile=$HOME/.tsurupluginadmtools-$RANDOM
+
 	IFS='
 '
 	for i in $(tsuru app-info -a $app|awk '$8 !~ /^$/ && $2 != "Unit" && $2 ~ /^([a-f0-9])+$/ {print $2,$4,$6":"$8}')
 	do 
 		echo unit: ${i}${path}
-		(time curl --connect-timeout 15 $(echo $i|awk '{print $3}')${path} >/dev/null 2>&1\
+		(time curl --max-time $TIMEOUT_REQUEST --connect-timeout 1 $(echo $i|awk '{print $3}')${path} >/dev/null 2>&1\
 			&&\
 				echo status: OK\
 			||\
 				echo status: BAD
 		) 2>&1|egrep "status|unit|real"
 		echo
-	done
+	done|tee $tempfile
+	echo $(grep -c OK $tempfile) OK
+	echo $(grep -c BAD $tempfile) BAD
+	echo
+	echo Top slow requests until $TIMEOUT_REQUEST seconds
+	awk '/real/{print $2}' $tempfile|sort -n|tail -10
+	echo
+	test -f $tempfile; rm -f $tempfile
 }
 
 function check-app-router() {
 	shift
 	app=$1
 	path=$2
+	test -z "$path" && path="$(get-healthcheck $app)"
+	test -d "$TMP" && tempfile=$TMP/.tsurupluginadmtools-$RANDOM || tempfile=$HOME/.tsurupluginadmtools-$RANDOM
 
 	for i in $(echo "lrange frontend:$app 0 -1"|redis-cli $REDIS_PARAMETERS|awk -F/ '/http/{print $3}')
 	do 
 		echo unit: ${i}${path}
-		(time curl --connect-timeout 15 ${i}${path} >/dev/null 2>&1\
+		(time curl --max-time $TIMEOUT_REQUEST --connect-timeout 1 ${i}${path} >/dev/null 2>&1\
 			&&\
 				echo status: OK\
 			||\
 				echo status: BAD
 		) 2>&1|egrep "status|unit|real"
 		echo
-	done
+	done|tee $tempfile
+	echo $(grep -c OK $tempfile) OK
+	echo $(grep -c BAD $tempfile) BAD
+	echo
+	echo Top slow requests until $TIMEOUT_REQUEST seconds
+	awk '/real/{print $2}' $tempfile|sort -n|tail -10
+	echo
+	test -f $tempfile; rm -f $tempfile
+}
+
+function get-healthcheck() {
+	app=$1
+	tsuru app-run 'grep -A1 ^healthcheck: {app,tsuru}.y?ml 2>/dev/null|awk "/path:/{print \$3; exit}"' -a $app -o
 }
 
 function node-list() {
