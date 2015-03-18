@@ -56,11 +56,23 @@ $ tsuru admtools -c appname /healthcheck/
 unit: c59bc17454 started 10.10.10.10:49282/healthcheck/
 real	0m0.021s
 status: OK
+1 OK
+0 BAD
+
+Top slow requests until 5 seconds
+0m0.043s
+
 $ #Or without path
 $ tsuru admtools -c appname 
 unit: c59bc17454 started 10.10.10.10:49282
 real	0m0.021s
 status: OK
+
+1 OK
+0 BAD
+
+Top slow requests until 5 seconds
+0m0.042s
 ```
 
 Group the nginx log of a VM created by RPaaS Service, giving group of status-code per minute 
