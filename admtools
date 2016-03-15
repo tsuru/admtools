@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+unset TSURU_TARGET #Fix bug in tsuru <=1.0.0rc5
 test -z "$REDIS_PARAMETERS" && REDIS_PARAMETERS="-h redis-hipache.yourcompany.com"
 test -z "$TIMEOUT_REQUEST" && TIMEOUT_REQUEST=5
 
