@@ -3,7 +3,8 @@
 unset TSURU_TARGET #Fix bug in tsuru <=1.0.0rc5
 test -z "$REDIS_PARAMETERS" && REDIS_PARAMETERS="-h redis-hipache.yourcompany.com"
 test -z "$TIMEOUT_REQUEST" && TIMEOUT_REQUEST=5
-NGINX_LOG=/var/log/nginx/access.log
+test -z "$NGINX_LOG" && NGINX_LOG=/var/log/nginx/access.log
+test -z "$ROUTERPLAN" && ROUTERPLAN="hipache"
 
 function check-app() {
 	shift
@@ -79,16 +80,31 @@ function verify-hipache-x-tsuru() {
 	for app in $(tsuru app-list|awk '$5=="of"{print $2}')
 	do
 		info=$(tsuru app-info -a $app)
-		echo $app
+		echo -- $app
+		if [ -z "$(echo "$info"|grep -A4 'App Plan'|tail -n 1|grep "$ROUTERPLAN")" ]
+		then
+			echo "no hipache like router"
+			echo
+			continue
+		fi
+		if [ -z "$(echo "$info"|grep 'Units \[web\]: ')" ]
+		then
+			echo "no web process"
+			echo
+			continue
+		fi
 		for domain in $(echo "$info"|sed '/^Address: \(.*\)$/!d; s//\1/;s/,//g;')
 		do
+			echo $domain
 			diff \
 			<(for i in $(echo "lrange frontend:$domain 0 -1"|redis-cli $REDIS_PARAMETERS|awk -F/ '/http/{print $3}')
 			do 
 				echo ${i}
 			done|sort) \
-			<(echo "$info" |sed -n '/^..Unit/,/^$/!d;p'|awk '$2 != "Unit" && $2 ~ /^([a-f0-9])+$/ {print $6":"$8}'|sort)
+			<(echo "$info"|sed -n '/Units \[[wW][eE][bB]\]:/,/^$/ p'|awk '$8 !~ /^$/ && $2 != "Unit" && $2 ~ /^([a-f0-9])+$/ {print $6":"$8}'|sort)
+
 		done
+		echo
 	done
 }
 
@@ -142,6 +158,35 @@ function node-exec() {
 }
 
 
+function acl-check() {
+	shift
+	test -z "$2" && cmd="$1"
+ 	test "$2" && pool="$1" && cmd="$2"
+ 
+ 	test -z "$pool"\
+		&&\
+			for i in $(
+					tsuru-admin docker-node-list|\
+						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
+				)
+			do 
+				echo Docker Node: $i
+				ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=5 $i "nc -vzw2 $cmd"
+			done\
+		||\
+			for i in $(
+					tsuru-admin docker-node-list|\
+					tail -r|\
+					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
+						/^..http:..\([^:]*\).*/!d
+						s//\1/
+						p'
+				)
+			do 
+				echo Docker Node: $i
+				ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=5 $i "nc -vzw2 $cmd"
+			done
+}
 
 function rpaas-per-minute() {
 	shift
@@ -207,7 +252,7 @@ RETVAL=0
 
 case "$1" in
    ""|--help|-h) 
-      echo "Usage: tsuru $(basename $0) [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url|slow-url ip-rpaas <stringlog> ] | [ --verify-hipache-x-tsuru|-v ] | [ --help|-h ]"
+      echo "Usage: tsuru $(basename $0) [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ -a|--acl-check <pool> 'ip port' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url|slow-url ip-rpaas <stringlog> ] | [ --verify-hipache-x-tsuru|-v ] | [ --help|-h ]"
       RETVAL=1
       ;;
    --node-list|-l)
@@ -215,6 +260,9 @@ case "$1" in
       ;;
    --check-app|-c)
       check-app "$@"
+      ;;
+   --acl-check|-a)
+      acl-check "$@"
       ;;
    --check-app-router|-r)
       check-app-router "$@"
