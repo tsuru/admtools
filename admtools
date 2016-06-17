@@ -157,6 +157,33 @@ function node-exec() {
 			done
 }
 
+function node-addrs() {
+	shift
+	test -z "$2" && cmd="$1"
+	test "$2" && pool="$1" && cmd="$2"
+
+	test -z "$pool"\
+		&&\
+			for i in $(
+					tsuru-admin docker-node-list|\
+						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
+				)
+			do
+				echo $i
+			done\
+		||\
+			for i in $(
+					tsuru-admin docker-node-list|\
+					tail -r|\
+					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
+						/^..http:..\([^:]*\).*/!d
+						s//\1/
+						p'
+				)
+			do
+				echo $i
+			done
+}
 
 function acl-check() {
 	shift
@@ -252,11 +279,14 @@ RETVAL=0
 
 case "$1" in
    ""|--help|-h) 
-      echo "Usage: tsuru $(basename $0) [ -l|--node-list <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ -a|--acl-check <pool> 'ip port' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url|slow-url ip-rpaas <stringlog> ] | [ --verify-hipache-x-tsuru|-v ] | [ --help|-h ]"
+      echo "Usage: tsuru $(basename $0) [ -l|--node-list <pool> ] | [ -d|--node-addrs <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ -a|--acl-check <pool> 'ip port' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url|slow-url ip-rpaas <stringlog> ] | [ --verify-hipache-x-tsuru|-v ] | [ --help|-h ]"
       RETVAL=1
       ;;
    --node-list|-l)
       node-list "$@"
+      ;;
+   --node-addrs|-d)
+      node-addrs "$@"
       ;;
    --check-app|-c)
       check-app "$@"
