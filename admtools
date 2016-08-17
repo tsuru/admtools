@@ -18,7 +18,7 @@ function check-app() {
 	then
 		#Treating only the web process
 		unitlist=$(echo "$appinfo"|sed -n '/Units \[[wW][eE][bB]\]:/,/^$/ p'|awk '$8 !~ /^$/ && $2 != "Unit" && $2 ~ /^([a-f0-9])+$/ {print $2,$4,$6":"$8}')
-	elif [ "$(echo "$appinfo"|grep -c 'Units' 2>/dev/null >&1)" -eq 1 ] 
+	elif [ "$(echo "$appinfo"|grep -c 'Units' 2>/dev/null >&1)" -eq 1 ]
 	then
 		#Treating the uniq process as web process
 		unitlist=$(echo "$appinfo" |awk '$8 !~ /^$/ && $2 != "Unit" && $2 ~ /^([a-f0-9])+$/ {print $2,$4,$6":"$8}')
@@ -26,11 +26,11 @@ function check-app() {
 		echo "The App: $app doesn't have a WEB process"
 		exit 1
 	fi
-	
+
 	IFS='
 '
-	for i in $unitlist 
-	do 
+	for i in $unitlist
+	do
 		echo unit: ${i}${path}
 		(time curl --max-time $TIMEOUT_REQUEST --connect-timeout 1 $(echo $i|awk '{print $3}')${path} >/dev/null 2>&1\
 			&&\
@@ -57,7 +57,7 @@ function check-app-router() {
 	test -d "$TMP" && tempfile=$TMP/.tsurupluginadmtools-$RANDOM || tempfile=$HOME/.tsurupluginadmtools-$RANDOM
 
 	for i in $(echo "lrange frontend:$app 0 -1"|redis-cli $REDIS_PARAMETERS|awk -F/ '/http/{print $3}')
-	do 
+	do
 		echo unit: ${i}${path}
 		(time curl --max-time $TIMEOUT_REQUEST --connect-timeout 1 ${i}${path} >/dev/null 2>&1\
 			&&\
@@ -98,7 +98,7 @@ function verify-hipache-x-tsuru() {
 			echo $domain
 			diff \
 			<(for i in $(echo "lrange frontend:$domain 0 -1"|redis-cli $REDIS_PARAMETERS|awk -F/ '/http/{print $3}')
-			do 
+			do
 				echo ${i}
 			done|sort) \
 			<(echo "$info"|sed -n '/Units \[[wW][eE][bB]\]:/,/^$/ p'|awk '$8 !~ /^$/ && $2 != "Unit" && $2 ~ /^([a-f0-9])+$/ {print $6":"$8}'|sort)
@@ -116,7 +116,7 @@ function get-healthcheck() {
 function node-list() {
 	shift
 	pool=$1
-        test "$1"\
+		test "$1"\
 		&&\
 			echo $(tsuru-admin docker-node-list |\
 			tail -r|\
@@ -130,15 +130,15 @@ function node-list() {
 function node-exec() {
 	shift
 	test -z "$2" && cmd="$1"
- 	test "$2" && pool="$1" && cmd="$2"
- 
- 	test -z "$pool"\
+	 test "$2" && pool="$1" && cmd="$2"
+
+	 test -z "$pool"\
 		&&\
 			for i in $(
 					tsuru-admin docker-node-list|\
 						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
 				)
-			do 
+			do
 				echo Docker Node: $i
 				ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=5 $i "$cmd"
 			done\
@@ -151,10 +151,40 @@ function node-exec() {
 						s//\1/
 						p'
 				)
-			do 
+			do
 				echo Docker Node: $i
 				ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=5 $i "$cmd"
 			done
+}
+
+function node-exec-parallel() {
+	shift
+	test -z "$2" && cmd="$1"
+	 test "$2" && pool="$1" && cmd="$2"
+	nodes=""
+	 test -z "$pool"\
+		&&\
+			for i in $(
+					tsuru-admin docker-node-list|\
+						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
+				)
+			do
+				nodes="${i} ${nodes}"
+			done\
+		||\
+			for i in $(
+					tsuru-admin docker-node-list|\
+					tail -r|\
+					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
+						/^..http:..\([^:]*\).*/!d
+						s//\1/
+						p'
+				)
+			do
+				nodes="${i} ${nodes}"
+			done
+
+	! test -z "${nodes}" && parallel -j50 -v ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=20 {} "$cmd" ::: ${nodes}
 }
 
 function node-addrs() {
@@ -188,15 +218,15 @@ function node-addrs() {
 function acl-check() {
 	shift
 	test -z "$2" && cmd="$1"
- 	test "$2" && pool="$1" && cmd="$2"
- 
- 	test -z "$pool"\
+	 test "$2" && pool="$1" && cmd="$2"
+
+	 test -z "$pool"\
 		&&\
 			for i in $(
 					tsuru-admin docker-node-list|\
 						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
 				)
-			do 
+			do
 				echo Docker Node: $i
 				ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=5 $i "nc -vzw2 $cmd"
 			done\
@@ -209,7 +239,7 @@ function acl-check() {
 						s//\1/
 						p'
 				)
-			do 
+			do
 				echo Docker Node: $i
 				ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=5 $i "nc -vzw2 $cmd"
 			done
@@ -219,36 +249,36 @@ function rpaas-per-minute() {
 	shift
 	case "$1" in
 	   url)
-	      rpaas-per-minute-url "$@"
-	      ;;
+		  rpaas-per-minute-url "$@"
+		  ;;
 	   bad-url)
-	      rpaas-per-minute-bad-url "$@"
-	      ;;
+		  rpaas-per-minute-bad-url "$@"
+		  ;;
 	   slow-url)
-	      rpaas-per-minute-slow-url "$@"
-	      ;;
-	   *) 
-	      rpaas-per-minute-status-code "$@"
-	      ;;
+		  rpaas-per-minute-slow-url "$@"
+		  ;;
+	   *)
+		  rpaas-per-minute-status-code "$@"
+		  ;;
 	esac
 }
 
 
 function rpaas-per-minute-status-code() {
-	test "$1" = "status-code" && shift 
+	test "$1" = "status-code" && shift
 	ip_rpaas="$1"
- 	test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
- 	date_log=$(echo $date_log|sed 's,/,\\/,g')
+	 test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
+	 date_log=$(echo $date_log|sed 's,/,\\/,g')
 
 	ssh $ip_rpaas 'sudo su -c "IFS=\"
 \"; for i in \$(awk /\"'$date_log'/{print \\\$2}\" '$NGINX_LOG'|sed \"s/^\(.*:\)[0-9][0-9]\(.*\)$/\1/g\"|uniq -c); do echo \$i;grep \$(echo \$i|awk \"{print \\\$2}\") '$NGINX_LOG'|awk -F \"\\\t\" \"{print \\\$8}\"|sort|uniq -c|sort -n;done   "'
 }
 
 function rpaas-per-minute-url() {
-	shift 
+	shift
 	ip_rpaas="$1"
- 	test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
- 	date_log=$(echo $date_log|sed 's,/,\\/,g')
+	 test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
+	 date_log=$(echo $date_log|sed 's,/,\\/,g')
 
 	ssh $ip_rpaas 'sudo su -c "IFS=\"
 \"; for i in \$(awk /\"'$date_log'/{print \\\$2}\" '$NGINX_LOG'|sed \"s/^\(.*:\)[0-9][0-9]\(.*\)$/\1/g\"|uniq -c); do echo \$i;grep \$(echo \$i|awk \"{print \\\$2}\") '$NGINX_LOG'|awk -F \"\\\t\" \"{print \\\$2,\\\$3,\\\$4,\\\$8}\"|sort|uniq -c|sort -n|tail -n20;done   "'
@@ -256,20 +286,20 @@ function rpaas-per-minute-url() {
 
 
 function rpaas-per-minute-bad-url() {
-	shift 
+	shift
 	ip_rpaas="$1"
- 	test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
- 	date_log=$(echo $date_log|sed 's,/,\\/,g')
+	 test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
+	 date_log=$(echo $date_log|sed 's,/,\\/,g')
 
 	ssh $ip_rpaas 'sudo su -c "IFS=\"
 \"; for i in \$(awk /\"'$date_log'/{print \\\$2}\" '$NGINX_LOG'|sed \"s/^\(.*:\)[0-9][0-9]\(.*\)$/\1/g\"|uniq -c); do echo \$i;grep \$(echo \$i|awk \"{print \\\$2}\") '$NGINX_LOG'|awk -F \"\\\t\"  \"\\\$8 !~ /^[23]|404/ {print \\\$2,\\\$3,\\\$4,\\\$8}\"|sort|uniq -c|sort -n|tail -n20;done   "'
 }
 
 function rpaas-per-minute-slow-url() {
-	shift 
+	shift
 	ip_rpaas="$1"
- 	test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
- 	date_log=$(echo $date_log|sed 's,/,\\/,g')
+	 test $2 && date_log="$2" || date_log=$(date +%d/%b/%Y:%H:)
+	 date_log=$(echo $date_log|sed 's,/,\\/,g')
 
 	ssh $ip_rpaas 'sudo su -c "IFS=\"
 \"; for i in \$(awk /\"'$date_log'/{print \\\$2}\" '$NGINX_LOG'|sed \"s/^\(.*:\)[0-9][0-9]\(.*\)$/\1/g\"|uniq -c); do echo \$i;grep \$(echo \$i|awk \"{print \\\$2}\") '$NGINX_LOG'|awk -F \"\\\t\" \"{print \\\$2,\\\$3,\\\$4,\\\$8,\\\$10}\"|sort -nk8|tail -n20;done   "'
@@ -278,35 +308,37 @@ function rpaas-per-minute-slow-url() {
 RETVAL=0
 
 case "$1" in
-   ""|--help|-h) 
-      echo "Usage: tsuru $(basename $0) [ -l|--node-list <pool> ] | [ -d|--node-addrs <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ -a|--acl-check <pool> 'ip port' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url|slow-url ip-rpaas <stringlog> ] | [ --verify-hipache-x-tsuru|-v ] | [ --help|-h ]"
-      RETVAL=1
-      ;;
+   ""|--help|-h)
+	  echo "Usage: tsuru $(basename $0) [ -l|--node-list <pool> ] | [ -d|--node-addrs <pool> ] | [ -x|--node-exec <pool> 'cmd' ] | [ -a|--acl-check <pool> 'ip port' ] | [ --check-app|-c appname <path> ] | [ --check-app-router|-r appname <path> ] | [ -m|--rpaas-per-minute <status-code>|url|bad-url|slow-url ip-rpaas <stringlog> ] | [ --verify-hipache-x-tsuru|-v ] | [ --help|-h ]"
+	  RETVAL=1
+	  ;;
    --node-list|-l)
-      node-list "$@"
-      ;;
+	  node-list "$@"
+	  ;;
    --node-addrs|-d)
-      node-addrs "$@"
-      ;;
+	  node-addrs "$@"
+	  ;;
    --check-app|-c)
-      check-app "$@"
-      ;;
+	  check-app "$@"
+	  ;;
    --acl-check|-a)
-      acl-check "$@"
-      ;;
+	  acl-check "$@"
+	  ;;
    --check-app-router|-r)
-      check-app-router "$@"
-      ;;
+	  check-app-router "$@"
+	  ;;
    --node-exec|-x)
-      node-exec "$@"
-      ;;
+	  node-exec "$@"
+	  ;;
+   --node-exec-parallel|-xp)
+	  node-exec-parallel "$@"
+	  ;;
    --rpaas-per-minute|-m)
-      rpaas-per-minute "$@"
-      ;;
+	  rpaas-per-minute "$@"
+	  ;;
    --verify-hipache-x-tsuru|-v)
-      verify-hipache-x-tsuru "$@"
-      ;;
+	  verify-hipache-x-tsuru "$@"
+	  ;;
 esac
 
 exit $RETVAL
-
