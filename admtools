@@ -184,7 +184,7 @@ function node-exec-parallel() {
 				nodes="${i} ${nodes}"
 			done
 
-	! test -z "${nodes}" && parallel -j50 -v ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=20 {} "$cmd" ::: ${nodes}
+	! test -z "${nodes}" && parallel -j50 -v ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=20 {} \'$cmd\' ::: ${nodes}
 }
 
 function node-addrs() {
