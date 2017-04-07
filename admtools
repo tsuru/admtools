@@ -118,7 +118,7 @@ function node-list() {
 	pool=$1
 		test "$1"\
 		&&\
-			echo $(tsuru-admin docker-node-list |\
+			echo $(tsuru node-list |\
 			tail -r|\
 			sed -n /pool=$pool'[^a-z]*$/,/^..http/!d; /^..https*:..\([^:]*\).*/!d; s//\1/; p')\
 		||\
@@ -135,7 +135,7 @@ function node-exec() {
 	 test -z "$pool"\
 		&&\
 			for i in $(
-					tsuru-admin docker-node-list|\
+					tsuru node-list|\
 						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
 				)
 			do
@@ -144,7 +144,7 @@ function node-exec() {
 			done\
 		||\
 			for i in $(
-					tsuru-admin docker-node-list|\
+					tsuru node-list|\
 					tail -r|\
 					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
 						/^..http:..\([^:]*\).*/!d
@@ -165,7 +165,7 @@ function node-exec-parallel() {
 	 test -z "$pool"\
 		&&\
 			for i in $(
-					tsuru-admin docker-node-list|\
+					tsuru node-list|\
 						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
 				)
 			do
@@ -173,7 +173,7 @@ function node-exec-parallel() {
 			done\
 		||\
 			for i in $(
-					tsuru-admin docker-node-list|\
+					tsuru node-list|\
 					tail -r|\
 					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
 						/^..http:..\([^:]*\).*/!d
@@ -195,7 +195,7 @@ function node-addrs() {
 	test -z "$pool"\
 		&&\
 			for i in $(
-					tsuru-admin docker-node-list|\
+					tsuru node-list|\
 						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
 				)
 			do
@@ -203,7 +203,7 @@ function node-addrs() {
 			done\
 		||\
 			for i in $(
-					tsuru-admin docker-node-list|\
+					tsuru node-list|\
 					tail -r|\
 					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
 						/^..http:..\([^:]*\).*/!d
@@ -223,7 +223,7 @@ function acl-check() {
 	 test -z "$pool"\
 		&&\
 			for i in $(
-					tsuru-admin docker-node-list|\
+					tsuru node-list|\
 						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
 				)
 			do
@@ -232,7 +232,7 @@ function acl-check() {
 			done\
 		||\
 			for i in $(
-					tsuru-admin docker-node-list|\
+					tsuru node-list|\
 					tail -r|\
 					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
 						/^..http:..\([^:]*\).*/!d
