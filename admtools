@@ -120,7 +120,7 @@ function node-list() {
 		&&\
 			echo $(tsuru node-list |\
 			tail -r|\
-			sed -n /pool=$pool'[^a-z]*$/,/^..http/!d; /^..https*:..\([^:]*\).*/!d; s//\1/; p')\
+			sed -n /pool=$pool'[^a-z]*$/,/^..https*/!d; /^..https*:..\([^:]*\).*/!d; s//\1/; p')\
 		||\
 			tsuru pool-list|\
 			sed 1,3d|\
@@ -136,7 +136,7 @@ function node-exec() {
 		&&\
 			for i in $(
 					tsuru node-list|\
-						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
+						sed '/^..https*:..\([^:]*\).*/!d; s//\1/'
 				)
 			do
 				echo Docker Node: $i
@@ -146,8 +146,8 @@ function node-exec() {
 			for i in $(
 					tsuru node-list|\
 					tail -r|\
-					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
-						/^..http:..\([^:]*\).*/!d
+					sed -n	/pool=$pool'[^a-z]*$/,/^..https*/!d
+						/^..https*:..\([^:]*\).*/!d
 						s//\1/
 						p'
 				)
@@ -166,7 +166,7 @@ function node-exec-parallel() {
 		&&\
 			for i in $(
 					tsuru node-list|\
-						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
+						sed '/^..https*:..\([^:]*\).*/!d; s//\1/'
 				)
 			do
 				nodes="${i} ${nodes}"
@@ -175,8 +175,8 @@ function node-exec-parallel() {
 			for i in $(
 					tsuru node-list|\
 					tail -r|\
-					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
-						/^..http:..\([^:]*\).*/!d
+					sed -n	/pool=$pool'[^a-z]*$/,/^..https*/!d
+						/^..https*:..\([^:]*\).*/!d
 						s//\1/
 						p'
 				)
@@ -196,7 +196,7 @@ function node-addrs() {
 		&&\
 			for i in $(
 					tsuru node-list|\
-						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
+						sed '/^..https*:..\([^:]*\).*/!d; s//\1/'
 				)
 			do
 				echo $i
@@ -205,8 +205,8 @@ function node-addrs() {
 			for i in $(
 					tsuru node-list|\
 					tail -r|\
-					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
-						/^..http:..\([^:]*\).*/!d
+					sed -n	/pool=$pool'[^a-z]*$/,/^..https*/!d
+						/^..https*:..\([^:]*\).*/!d
 						s//\1/
 						p'
 				)
@@ -224,7 +224,7 @@ function acl-check() {
 		&&\
 			for i in $(
 					tsuru node-list|\
-						sed '/^..http:..\([^:]*\).*/!d; s//\1/'
+						sed '/^..https*:..\([^:]*\).*/!d; s//\1/'
 				)
 			do
 				echo Docker Node: $i
@@ -234,8 +234,8 @@ function acl-check() {
 			for i in $(
 					tsuru node-list|\
 					tail -r|\
-					sed -n	/pool=$pool'[^a-z]*$/,/^..http/!d
-						/^..http:..\([^:]*\).*/!d
+					sed -n	/pool=$pool'[^a-z]*$/,/^..https*/!d
+						/^..https*:..\([^:]*\).*/!d
 						s//\1/
 						p'
 				)
